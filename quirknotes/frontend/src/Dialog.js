@@ -3,7 +3,7 @@ import './App.css';
 
 const baseNote = {title: "", content: ""}
 
-function Dialog({open, initialNote, closeDialog, postNote: postNoteState}) {
+function Dialog({open, initialNote, closeDialog, postNote: postNoteState, patchNote: patchNoteState}) {
 
     // -- Dialog props --
     const [note, setNote] = useState(baseNote)
@@ -54,8 +54,29 @@ function Dialog({open, initialNote, closeDialog, postNote: postNoteState}) {
         } 
     }
 
-    const patchNote = (entry) => {
+    const patchNote = async (entry) => {
         // Code for PATCH here
+        try {
+            await fetch("http://127.0.0.1:4000/patchNote/" + note._id,
+                {method: "PATCH",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({title: note.title, content: note.content})} )
+            .then(async (response) => {
+                if (!response.ok) {
+                    setStatus(`Error trying to patch note`)
+                    console.log("Served failed:", response.status)
+                } else {
+                    await response.json().then((data) => {
+                        patchNoteState(note._id, note.title, note.content)
+                        // setStatus("Note posted!") // Can be replaced with close(), if you want!
+                        close()
+                    }) 
+                }
+            })
+
+        } catch(error){
+            console.log(error);
+        }
     }
 
     return (
